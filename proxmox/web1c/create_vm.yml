@@ -1,0 +1,44 @@
+---
+- name : "Create LXC Container for WEB1C"
+  hosts: s1
+  vars_files:
+    - secret.yml
+  tasks:
+  - name: Create new container with minimal options
+    community.general.proxmox:
+      api_user: "{{ api_user }}"
+      api_password: "{{ api_password }}"
+      api_host: "{{ api_host }}" 
+      password: "{{ password_access }}"
+      vmid: '110'     
+      hostname: 'web12.maktren.local'
+      nameserver: "{{ name_server }}"
+      searchdomain: "{{ name_server }}"
+      node: 's1'
+      memory: '1024'
+      netif: '{"net0":"name=eth0,ip=dhcp,bridge=vmbr137"}'
+      storage: 'NVME_1'
+      onboot: 'yes'
+      pubkey: "{{ lookup('file','/root/.ssh/id_rsa.pub') }}"
+      ostemplate: 'local:vztmpl/ubuntu-20.04-standard_20.04-1_amd64.tar.gz'
+      state: 'present'
+  - name: Started container
+    community.general.proxmox:
+      api_user: "{{ api_user }}"
+      api_password: "{{ api_password }}"
+      api_host: "{{ api_host }}" 
+      vmid: '110'    
+      timeout: '60'
+      state: 'started'
+  - name: Sleep for 300 seconds and continue with play
+    wait_for:
+      timeout: 3
+    delegate_to: localhost    
+  - name: Get IP
+    ansible.builtin.command: lxc-info -n 110 -iH
+    register: getip
+  - name: Add host
+    add_host:
+      hostname: "{{getip.stdout_lines[0] }}"
+      groups:
+        - web12.maktren.local

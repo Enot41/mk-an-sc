@@ -1,0 +1,25 @@
+- name : "Install Zabbix Agent and Configuration"
+  hosts: s1
+  #become: yes
+  tasks: 
+  - name: Install Zabbix-Agent
+    apt: 
+      pkg: 
+      - zabbix-agent
+        update_cache: yes
+        state: present
+  - name: Configuration Zabbix
+    copy:
+      src: zabbix_agentd.conf
+      dest: /etc/zabbix/zabbix_agentd.conf
+    notify: 
+      - Restart Zabbix-Agent
+  - name: Enable Service Zabbix-Agent
+    systemd:
+      name: zabbix-agent
+      enabled: yes
+  handlers:
+    - name: Restart Zabbix-Agent
+      service:
+        name: zabbix-agent
+        state: restarted

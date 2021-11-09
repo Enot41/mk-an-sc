@@ -1,0 +1,48 @@
+- name: "install web 1c"
+  hosts: web12.maktren.local
+  vars_files:
+    - secret.yml
+  tasks:
+  - name: Install package
+    apt:
+      pkg:
+      - nginx
+      - mc
+      - vim
+      - smbclient
+      - apache2
+      update_cache: yes
+      state: present
+  - name: Copy 1c tar
+    command:
+      smbclient //192.168.137.251/BackUPS1 backup1 -U backup1 -c "get {{version_1c}}.tar.gz"
+  - name: Extrect Tar
+    shell: tar -xvf {{version_1c}}.tar.gz
+  - name: Install 1c Deb
+    apt:
+      deb: "{{ item }}"
+    with_items:   
+      - 1c-enterprise-8.3.18.1616-common_8.3.18-1616_amd64.deb
+      - 1c-enterprise-8.3.18.1616-ws_8.3.18-1616_amd64.deb
+      - 1c-enterprise-8.3.18.1616-server_8.3.18-1616_amd64.deb  
+  - name: Copy config files 
+    copy:
+      src: '{{ item.src }}'
+      dest: '{{ item.dest }}'
+    with_items:
+      - { src: files/default, dest: /etc/nginx/sites-available/}
+      - { src: files/apache2.conf, dest: /etc/apache2/ }
+      - { src: files/ports.conf, dest: /etc/apache2/ }  
+      - { src: files/www, dest: /var/ }  
+    notify: 
+      - Restart Apache2
+      - Restart Nginx
+  handlers: 
+    - name: Restart Apache2
+      service:
+        name: apache2
+        state: restarted
+    - name: Restart Nginx
+      service: 
+        name: nginx
+        state: restarted    

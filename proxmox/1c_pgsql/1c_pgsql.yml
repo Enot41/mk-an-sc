@@ -1,0 +1,34 @@
+- name : "Install Zabbix Agent and Configuration"
+  hosts: server1c
+  #become: yes
+  tasks: 
+  - name: Install Pkg
+    apt: 
+      pkg: 
+      - gnupg2
+      - imagemagick
+      - unixodbc
+      - ttf-mscorefonts-installer
+      update_cache: yes
+      state: present
+  - name: Install Locale UTF-Ru
+    locale_gen:
+      name: ru_RU.utf8
+      state: present
+  - name: Copy Deb 1c
+    copy:
+      src: 1c.deb
+      dest: /tmp/1c.deb
+  - name: Copy Apt-repo PosgtgrePro
+    get_url:
+      url: apt-repo-add.sh https://repo.postgrespro.ru/pg1c-12/keys/apt-repo-add.sh
+      dest: /tmp/
+  - name: Install apt-repo postgresql
+    command: sh /tmp/apt-repo-add.sh
+  - name: Install Postgresql Pro
+    apt :
+      pkg: 
+      - postgrespro-1c-12
+      - postgrespro-1c-12-contrib
+      update_cache: yes
+      state: present
