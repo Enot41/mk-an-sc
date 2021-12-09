@@ -1,6 +1,6 @@
 - name : "Install Zabbix Agent and Configuration"
-  hosts: s1
-  #become: yes
+  hosts: all
+  become: yes
   tasks: 
   - name: Install Zabbix-Agent
     apt: 

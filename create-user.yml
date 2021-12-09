@@ -1,25 +1,17 @@
-- name : "Install Zabbix Agent and Configuration"
-  hosts: s1
-  #become: yes
-  tasks: 
-  - name: Install Zabbix-Agent
-    apt: 
-      pkg: 
-      - zabbix-agent
-        update_cache: yes
-        state: present
-  - name: Configuration Zabbix
-    copy:
-      src: zabbix_agentd.conf
-      dest: /etc/zabbix/zabbix_agentd.conf
-    notify: 
-      - Restart Zabbix-Agent
-  - name: Enable Service Zabbix-Agent
-    systemd:
-      name: zabbix-agent
-      enabled: yes
-  handlers:
-    - name: Restart Zabbix-Agent
-      service:
-        name: zabbix-agent
-        state: restarted
+- name : "Create User GSZI"
+  hosts: all
+  tasks:
+  - name: Add the user GSZI
+    user:
+      name: gszi
+      password: "{{ upassword | password_hash('sha512') }}"
+      comment: GSZI
+      group: sudo
+      shell: /bin/bash
+      createhome: yes
+      state: present
+  - name: Set authorized key took from file
+    authorized_key:
+      user: gszi
+      state: present
+      key: "{{ lookup('file', 'id_rsa.pub') }}"
