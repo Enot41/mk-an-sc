@@ -2,7 +2,7 @@
 - name : "Create VM template"
   hosts: s2
   vars_files:
-    - secret.yml
+    - secrett.yml
   tasks:
   - name: Cloning virtual machine from  
     proxmox_kvm:
@@ -14,7 +14,7 @@
        clone: "{{ template_name }}"
   - name: Increasing disk if it is necessary
     become: yes
-    shell: A=$(qm list |grep {{ name_vm }} | awk '{print $1}'); qm resize $A {{ default_disk }} +{{ size_disk }}G
+    shell: A=$(qm list |grep {{  name_vm  }} | awk '{print $1}'); qm resize $A {{ default_disk }} +{{ size_disk }}G
     when: '"{{ size_disk }}" != "0"'
   - name: Waiting to apply cloud init changes in disk
     wait_for:
